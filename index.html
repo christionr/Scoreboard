@@ -1,0 +1,785 @@
+<!--
+SWITCH TO ESPN:
+https://gist.github.com/bhaidar/b2fdd34004250932a4a354a2cc15ddd4
+MLB: https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard
+NFL: http://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard
+NBA: http://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard
+EPL: http://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard
+College football: http://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard
+College baseketball: http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard
+Tennis	https://site.api.espn.com/apis/site/v2/sports/tennis/atp/scoreboard?dates=20250616
+Golf	https://site.api.espn.com/apis/site/v2/sports/golf/pga/scoreboard?dates=20250616
+MLS	https://site.api.espn.com/apis/site/v2/sports/soccer/usa.1/scoreboard?dates=20250616
+
+https://site.web.api.espn.com/apis/personalized/v2/scoreboard/header?region=us&lang=en&postalCode=93401
+https://site.web.api.espn.com/apis/personalized/v2/scoreboard/header?region=us&lang=en&configuration=SITE_DEFAULT&showAirings=buy%2Clive%2Creplay&postalCode=93444
+https://site.web.api.espn.com/apis/personalized/v2/scoreboard/header?region=us&lang=en&contentorigin=espn&configuration=SITE_DEFAULT&platform=web&buyWindow=1m&showAirings=buy%2Clive%2Creplay&showZipLookup=true&tz=America%2FNew_York&_ceID=4379198&postalCode=93444&playabilitySource=playbackId
+
+OLD:
+{ name: "San Francisco Giants", id: "135279", sport: "baseball_mlb" },
+{ name: "Arsenal", id: "133604", sport: "soccer" },
+{ name: "Oklahoma Sooners", id: "136935", sport: "american_football_ncaaf" },
+{ name: "San Francisco 49ers", id: "134948", sport: "american_football_nfl" },
+{ name: "Golden State Warriors", id: "134865", sport: "basketball_nba" },
+// { name: "Cal Poly Baseball", search: "Cal Poly Baseball", sport: "baseball_ncaa" },
+// { name: "Fresno State Basketball", search: "Fresno State Basketball", sport: "basketball_ncaa" }
+MLB 
+    4424-mlb
+    135279-san-francisco-giants
+  Premier League
+    4328-english-premier-league
+    133604-arsenal
+  MLS
+    4346-american-major-league-soccer
+  NBA 
+    4387-nba
+    134865-golden-state-warriors
+  NFL
+    4391-nfl
+    134948-san-francisco-49ers
+  NCAA
+    136935-oklahoma
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <footer1 charset="UTF-8">
+  <title>Sports Scoreboard</title>
+  <footer1 name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.cdnfonts.com/css/60s-scoreboard" rel="stylesheet">
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: #000;
+      display: flex;
+      justify-content: center;
+      /* align-items: center; */
+      padding: 25px;
+    }
+    .scoreboard-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: top;
+      align-items: flex-start;
+      width: 90vw;
+      max-width: 1024px; /* iPad landscape */
+    }
+    .header, .score, .footer1, .footer2 {
+      font-family: '60s Scoreboard', monospace;
+      color: #FFA500;
+      text-align: left;
+      width: 100%;
+      white-space: pre-wrap;
+      overflow: hidden;
+      margin-bottom: 0.2em;
+    }
+    .score, .footer1, .footer2 {
+      font-family: '60s Scoreboard', monospace;
+      color: #FFA500;
+      /* text-shadow: 0 0 8px #FFB347, 0 0 16px #FFA500, 0 0 32px #FF5C00; */
+      text-shadow: 0 0 16px #FFA500, 0 0 20px #FF5C00;
+    }
+    .header {
+      padding-bottom: 25px;
+      font-weight: 600;
+      text-shadow: 0 0 14px #FF9500, 0 0 2px #FF5C00;
+    }
+    .score, .footer1, .footer2 {
+      /* text-shadow: 0 0 8px #FFB347, 0 0 16px #FFA500, 0 0 32px #FF5C00; */
+      text-shadow: 0 0 16px #FFA500, 0 0 20px #FF5C00;
+    }
+    .score b {
+      color: #FFB500;
+      text-shadow: 0 0 14px #FF9500, 0 0 2px #FF5C00;
+      font-weight: 900;
+      font-stretch: expanded;
+    }
+    .score div {
+      line-height: 1;
+    }
+    
+    .header { font-size: 1.2em; letter-spacing: 0.08em; }
+    .score { font-size: 2em; letter-spacing: 0.10em; }
+    .score span { font-size: 0.55em; letter-spacing: 0.05em; }
+    .score span.smaller { font-size: 0.40em; letter-spacing: 0.05em; }
+    .footer1 { font-size: 0.9em; }
+    .footer2 { font-size: 0.7em; }
+    @media (max-width: 600px) {
+      .header { font-size: 1.2em; }
+      .score { font-size: 2em; }
+    }
+    
+    #sleep-btn {
+      float: right;
+    }
+
+    .night-blackout {
+      background: #000 !important;
+      color: #000 !important;
+      width: 100vw;
+      height: 100vh;
+      position: fixed;
+      top: 0; left: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+
+    #scoreboard-footer {
+      font-family: '60s Scoreboard', sans-serif;
+      background-color: #000; /* Black when hidden */
+      color: orange;
+      text-shadow: 0 0 5px orange;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      transition: background-color 0.3s, box-shadow 0.3s;
+      box-shadow: none;
+      z-index: 1000;
+    }
+
+    #scoreboard-footer.hidden {
+      background-color: #000;
+      cursor: pointer;
+      box-shadow: none;
+      opacity: 0;
+    }
+
+    #scoreboard-footer:not(.hidden) {
+      background-color: #333;
+      cursor: auto;
+    }
+
+    .footer-buttons {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .footer-btn {
+      background: transparent;
+      border: 2px solid orange;
+      color: orange;
+      font-family: '60s Scoreboard', sans-serif;
+      font-size: 16px;
+      padding: 8px 12px;
+      cursor: pointer;
+      text-shadow: 0 0 5px orange;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    #scoreboard-footer:not(.hidden) .footer-btn {
+      opacity: 1;
+    }
+
+    .footer-btn:hover {
+      background: rgba(255, 165, 0, 0.2);
+    }
+
+    .footer-buttons-right {
+      position: absolute;
+      right: 20px;
+      display: flex;
+    }
+
+    .day-toggle {
+      position: absolute;
+      left: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-family: '60s Scoreboard', sans-serif;
+      color: orange;
+      text-shadow: 0 0 5px orange;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    #scoreboard-footer:not(.hidden) .day-toggle {
+      opacity: 1;
+    }
+
+    .day-toggle input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      appearance: none;
+      -webkit-appearance: none;
+      background-color: transparent;
+      border: 2px solid orange;
+      border-radius: 4px;
+      cursor: pointer;
+      position: relative;
+      vertical-align: middle;
+    }
+
+    .day-toggle input[type="checkbox"]:checked {
+      background-color: orange;
+    }
+
+    .day-toggle input[type="checkbox"]:checked:after {
+      position: absolute;
+      color: #000;
+      font-size: 16px;
+      left: 1px;
+      top: -2px;
+    }
+  </style>
+</head>
+<body>
+  <div id="night-overlay" class="night-blackout" style="display:none;"></div>
+  <div class="scoreboard-container">
+    <div class="header" id="header">Loading...</div>
+    <div class="score" id="scoreboard"></div>
+    <div class="footer1" id="footer1"></div>
+    <div class="footer2" id="footer2"></div>
+
+    <footer id="scoreboard-footer" class="hidden">
+      <label class="day-toggle">
+        <input type="checkbox" id="day-toggle">
+        <span>recent</span>
+      </label>
+
+      <div class="footer-buttons">
+        <button id="prev" class="footer-btn" onclick="goPrev()"><<</button>
+        <button id="play-pause" class="footer-btn" onclick="togglePlayPause()">11</button>
+        <button id="next" class="footer-btn" onclick="goNext()">>></button>
+      </div>
+      <div class="footer-buttons-right">
+        <button id="sleep-btn" class="footer-btn" onclick="enterNightMode()">Sleep</button>
+      </div>
+      
+    </footer>
+  </div>
+
+  </div>
+  <script>
+    const favorites = [
+      { teamName: "San Francisco Giants", league: "MLB" },
+      { teamName: "Arsenal", league: "English Premier League" },
+      { teamName: "San Francisco 49ers", league: "NFL" },
+      { teamName: "Golden State Warriors", league: "NBA" },
+      { teamName: "Oklahoma Sooners", league: "NCAA Football" },
+      { teamName: "Fresno St", league: "NCAA Football" },
+      { teamName: "Cal Poly", league: "NCAA Basketball" },
+      { teamName: "UCLA", league: "NCAA Basketball" },
+      { teamName: "Fresno St", league: "NCAA Basketball" },
+      { teamName: "Cal Poly", league: "NCAA Baseball" },
+      { teamName: "Fresno St", league: "NCAA Baseball" },
+    ];
+    const apis = [
+      { url: "https://site.web.api.espn.com/apis/personalized/v2/scoreboard/header?region=us&lang=en&postalCode=93401", name: "Top Events" },
+      { url: "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard", league: "MLB" },
+      { url: "http://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard", league: "English Premier League" },
+      { url: "http://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard", league: "NFL" },
+      { url: "http://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard", league: "NBA" },
+      { url: "http://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard", league: "NCAA Football" },
+      { url: "http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard", league: "NCAA Basketball" },
+      { url: "https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/scoreboard", league: "NCAA Baseball" },
+    ];
+
+    // Configuration: interval in seconds between groups
+    const intervalSeconds = 10; // change X here
+    const intervalMs = intervalSeconds * 1000;
+    const sleepIntervalMs = 60 * 1000;
+
+    // State
+    let cache = new Map(); // url -> { timestamp: number, data: Array }
+    let currentApiIndex = 0;
+    let currentGroupIndex = 0;
+    let currentChunks = []; // Array of arrays of items (groups of up to 3)
+    let paused = false;
+    let timeoutId = null;
+    let onlyRecentResults = false;
+
+    // Helper: fetch with 1-hour cache
+    async function fetchAndCache(api) {
+      const url = api.url;
+      const now = Date.now();
+      const ONE_HOUR = 3600 * 1000;
+      const entry = cache.get(url);
+      if (entry && (now - entry.timestamp) < ONE_HOUR) {
+        return entry.data;
+      }
+      try {
+        const data = await fetchData(url);
+        // Expect data to be an array
+        cache.set(url, { timestamp: now, data });
+        return data;
+      } catch (err) {
+        console.error(`Error fetching ${url}:`, err);
+        // On error, return empty array so the loop continues
+        return [];
+      }
+    }
+
+    // Helper: sort results so favorites for this league come first, and check onlyRecentResults
+    function sortFavoritesAndCheckRecent(events, league) {
+      // Find all favorite teamNames for this league
+      const favNames = favorites
+        .filter(f => f.league === league)
+        .map(f => f.teamName.toLowerCase());
+      // If no favorites for this league, return original order (filtered by date if needed)
+      if (favNames.length === 0) {
+        return onlyRecentResults
+          ? events.filter(event => isWithinDay(event.date))
+          : events.slice(); // or events.slice() if you need a copy
+      }
+      // Filter events by date if needed
+      const filteredEvents = onlyRecentResults
+        ? events.filter(event => isWithinDay(event.date))
+        : events;
+      // Partition
+      const favEvents = filteredEvents.filter(event => 
+        favNames.some(favName => (event.name || "").toLowerCase().includes(favName))
+      );
+      const otherEvents = filteredEvents.filter(event => 
+        !favEvents.includes(event)
+      );
+      return favEvents.concat(otherEvents);
+    }
+
+
+    // Helper: split array into chunks of size 3
+    function chunkArray(arr, size = 3) {
+      const chunks = [];
+      for (let i = 0; i < arr.length; i += size) {
+        chunks.push(arr.slice(i, i + size));
+      }
+      // If arr is empty, return one empty chunk so we still call showResults([])
+      return chunks.length > 0 ? chunks : [[]];
+    }
+
+    // Prepare chunks for a given API index
+    async function loadAndPrepare(apiIndex) {
+      const api = apis[apiIndex];
+      const rawData = await fetchAndCache(api);
+      // check if league or top events (no league name)
+      if (api.league == null) {
+        // remove my preferred leagues from top events
+        const existingLeagues = apis.filter(o => o.league != null).map(obj => obj.league.toLowerCase());
+        console.log(existingLeagues, rawData);
+        const filteredLeaguesWithEvents =
+          rawData
+          /*
+            .flatMap(sport =>
+              sport.leagues
+                .filter(league => !existingLeagues.includes(league.abbreviation.toLowerCase()))
+                .map(league => ({
+                  leagues: [{ id: league.id, name: league.name, abbreviation: league.abbreviation }],
+                  events: league.events
+                }))
+            );
+            */
+           .flatMap(sport =>
+              sport.leagues
+                .filter(league => !existingLeagues.includes(league.abbreviation.toLowerCase()))
+                .flatMap(league => league.events)
+           );
+        console.log('filteredLeaguesWithEvents: ', filteredLeaguesWithEvents);
+        return chunkArray(filteredLeaguesWithEvents, 3);
+      } else {
+        const sorted = sortFavoritesAndCheckRecent(rawData, api.league);
+        console.log('sorted: ', sorted);
+        return chunkArray(sorted, 3);
+      }
+    }
+
+    // Control functions
+    function startLoop() {
+      // Kick off the first display immediately
+      // Clear any existing timeout
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+      paused = false;
+      // Initialize state if needed
+      currentChunks = [];
+      currentGroupIndex = 0;
+      // Start
+      advance();
+    }
+
+    function pauseLoop() {
+      paused = true;
+      updatePlayPauseButton();
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+    }
+
+    function resumeLoop() {
+      if (!paused) return;
+      paused = false;
+      updatePlayPauseButton();
+      // After resuming, schedule next advance after the full interval
+      scheduleNext();
+    }
+
+    // Show current group and schedule next
+    async function advance() {
+      if (paused) return;
+      // If first time or we exhausted chunks
+      if (!currentChunks.length) {
+        // Load for currentApiIndex
+        currentChunks = await loadAndPrepare(currentApiIndex);
+        currentGroupIndex = 0;
+      } else {
+        currentGroupIndex++;
+        if (currentGroupIndex >= currentChunks.length) {
+          // Move to next API
+          currentApiIndex = (currentApiIndex + 1) % apis.length;
+          currentChunks = await loadAndPrepare(currentApiIndex);
+          currentGroupIndex = 0;
+        }
+      }
+      // Display or go to next
+      if (currentChunks[currentGroupIndex].length > 0) {
+        showResults(currentChunks[currentGroupIndex]);
+        scheduleNext();
+      } else {
+        if (currentApiIndex == apis.length-1) {
+          const totalEvents = [...cache.values()].reduce(
+            (sum, { data }) => sum + (Array.isArray(data) ? data.length : 0),
+            0
+          );
+          if (totalEvents == 0) {
+            // pausing during infinite loop
+            console.log('advance waiting - totalEvents:', totalEvents);
+            await wait(60000 * 60);
+          }
+        }
+        advance();
+      }
+    }
+
+    function scheduleNext() {
+      if (paused) return;
+      timeoutId = setTimeout(() => {
+        advance();
+      }, intervalMs);
+    }
+
+    // Immediate navigation: next group/API
+    async function goNext() {
+      // Cancel pending
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+      // If no chunks loaded yet, treat like advance logic
+      if (!currentChunks.length) {
+        currentChunks = await loadAndPrepare(currentApiIndex);
+        currentGroupIndex = 0;
+      } else {
+        let nextGroup = currentGroupIndex + 1;
+        if (nextGroup < currentChunks.length) {
+          currentGroupIndex = nextGroup;
+        } else {
+          // Next API
+          currentApiIndex = (currentApiIndex + 1) % apis.length;
+          currentChunks = await loadAndPrepare(currentApiIndex);
+          currentGroupIndex = 0;
+        }
+      }
+      // Display or go to next
+      if (currentChunks[currentGroupIndex].length > 0) {
+        showResults(currentChunks[currentGroupIndex]);
+        if (!paused) scheduleNext();
+      } else {
+        if (currentApiIndex == apis.length-1) {
+          const totalEvents = [...cache.values()].reduce(
+            (sum, { data }) => sum + (Array.isArray(data) ? data.length : 0),
+            0
+          );
+          if (totalEvents == 0) {
+            // pausing during infinite loop
+            console.log('advance waiting - totalEvents:', totalEvents);
+            await wait(60000 * 60);
+          }
+        }
+        goNext();
+      }
+    }
+
+    // Immediate navigation: previous group/API
+    async function goPrev() {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+      if (!currentChunks.length) {
+        // If nothing loaded yet, go to last API's last group
+        currentApiIndex = (apis.length - 1 + apis.length) % apis.length;
+        currentChunks = await loadAndPrepare(currentApiIndex);
+        currentGroupIndex = currentChunks.length - 1;
+      } else {
+        let prevGroup = currentGroupIndex - 1;
+        if (prevGroup >= 0) {
+          currentGroupIndex = prevGroup;
+        } else {
+          // Previous API
+          currentApiIndex = (currentApiIndex - 1 + apis.length) % apis.length;
+          currentChunks = await loadAndPrepare(currentApiIndex);
+          currentGroupIndex = currentChunks.length - 1;
+        }
+      }
+      // Display or go to prev
+      if (currentChunks[currentGroupIndex].length > 0) {
+        showResults(currentChunks[currentGroupIndex]);
+        if (!paused) scheduleNext();
+      } else {
+        if (currentApiIndex == 0) {
+          const totalEvents = [...cache.values()].reduce(
+            (sum, { data }) => sum + (Array.isArray(data) ? data.length : 0),
+            0
+          );
+          if (totalEvents == 0) {
+            // pausing during infinite loop
+            console.log('advance waiting - totalEvents:', totalEvents);
+            await wait(60000 * 60);
+          }
+        }
+        goPrev();
+      }
+    }
+
+    async function showResults(data) {
+      console.log('showResults', data);
+      let formatDateAndTime = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/Los_Angeles', month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true
+      });
+      let formatDateOnly = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/Los_Angeles', month: '2-digit', day: '2-digit', year: 'numeric'
+      });
+      let formatTimeOnly = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/Los_Angeles', hour: '2-digit', minute: '2-digit', hour12: true
+      });
+
+      const headerText = apis[currentApiIndex].league
+      const scoreboardText = data
+        .map(f => {
+          var eventName = f.shortName;
+          const eventDate = new Date(f.date);
+          const eventDateInfo = isToday(eventDate) ? formatTimeOnly.format(eventDate) : formatDateAndTime.format(eventDate);
+          const state = f.status?.type?.state || f.fullStatus?.type?.state || f.status;
+          const pre = state == "pre";
+          const inProgress = state == "in";
+          const completed = f.status?.type?.completed ?? (f.fullStatus?.type?.completed ?? false);
+
+          var venue = '';
+          var broadcasts = '';
+          var status = inProgress ? `${f.status?.type?.shortDetail || f.summary}` : `${f.status?.type?.description || f.summary}${isToday(eventDate) ? '' : ' ' + formatDateOnly.format(eventDate)}`;
+//console.log(f.status);
+          if (f.competitions?.length ?? 0 > 0) {
+            const competition = f.competitions[0];
+            venue = competition?.venue?.fullName ?? '';
+            broadcasts = competition?.broadcasts.map(b => b.names.join(', ')).join(', ') ?? '';
+
+            // Update eventName with completed score
+            if ((inProgress || completed) && competition.competitors?.length > 0) {
+              eventName = competition.competitors.map(c => `${c.team.abbreviation} <b>${c.score}</b>`).join(' ');
+              // c.homeAway c.winner
+            }
+          } else {
+            // (probably top events)
+            venue = f.note ?? truncateWithEllipsis(f.location, 35);            
+            broadcasts = f.broadcast;
+            // Update with completed score
+            if ((inProgress || completed) && f.competitors?.length > 0) {
+              var score = f.competitors
+                .slice(0, 3)
+                .map(c =>
+                    c.score !== undefined && c.score !== null
+                        ? `${c.abbreviation} <b>${c.score}</b>`
+                        : `${c.abbreviation}`
+                )
+                .join(' ');
+              if ((f.competitors?.length ?? 0) == 2) {
+                eventName = score;
+              } else {
+                broadcasts = score + "</span> \n<span>" + broadcasts; // hacky !!!
+              }
+            }
+          }
+
+          // TODO: if favorites then bold it too - favorites.filter(f => f.league === league).map(f => f.teamName.toLowerCase());
+          
+          return `<div>${eventName} \n<span>${pre ? eventDateInfo : status} - ${venue}</span> \n<span>${broadcasts}</span></div>`;
+        })
+        .join("\n");
+
+      document.getElementById("header").textContent = headerText;
+      document.getElementById("scoreboard").innerHTML = scoreboardText;
+      document.getElementById("footer1").textContent = scoreboardText?.length == 0 ? "No events today." : "";
+      document.getElementById("footer2").textContent = "";
+    }
+    
+    function truncateWithEllipsis(str, max) {
+      return str.length > max ? str.slice(0, max) + '' : str;
+    }
+
+    function wait(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function isToday(date) {
+      const today = new Date();
+      return (
+        date.getDate() === today.getDate() &&
+        date.getMonth() === today.getMonth() &&
+        date.getFullYear() === today.getFullYear()
+      );
+    }
+ 
+    function isWithinDay(dateStr, days = 1) {
+      if (!dateStr) return false;
+      const eventDate = new Date(dateStr);
+      if (isNaN(eventDate.getTime())) return false; // invalid date
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // set to midnight for accurate day comparison
+      const eventDay = new Date(eventDate);
+      eventDay.setHours(0, 0, 0, 0);
+      const diffInDays = Math.abs((eventDay - today) / (1000 * 60 * 60 * 24));
+      return diffInDays <= days;
+    }
+
+    async function fetchData(url) {
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        //gameInfo = (isNextGame ? data.events?.[0] : data.results?.[0]) || null;
+        const events = data?.events;
+        console.log('fetchData', url, data);
+        return data?.events || data?.sports;
+      } catch {
+        console.log(`Unable to load data for ${url}`);
+      }
+    }
+
+
+    // Hook up buttons after DOM loads
+    window.addEventListener('DOMContentLoaded', () => {
+      const pausePlayBtn = document.getElementById('pausePlayBtn');
+      const forwardBtn = document.getElementById('forwardBtn');
+      const backBtn = document.getElementById('backBtn');
+
+      if (pausePlayBtn) {
+        pausePlayBtn.addEventListener('click', () => {
+          if (paused) {
+            resumeLoop();
+            pausePlayBtn.textContent = '11';
+          } else {
+            pauseLoop();
+            pausePlayBtn.textContent = '1>';
+          }
+        });
+        // Initialize button text
+        pausePlayBtn.textContent = '11';
+      }
+      if (forwardBtn) {
+        forwardBtn.addEventListener('click', () => {
+          goNext();
+        });
+      }
+      if (backBtn) {
+        backBtn.addEventListener('click', () => {
+          goPrev();
+        });
+      }
+
+      document.getElementById('scoreboard-footer').addEventListener('click', function(e) {
+        const isButton = e.target.classList.contains('footer-btn');
+        if (this.classList.contains('hidden')) {
+          this.classList.remove('hidden');
+        } else if (!isButton) {
+          this.classList.add('hidden');
+        }
+      });
+
+      // Tap anywhere on the blackout to exit night mode
+      document.getElementById('night-overlay').addEventListener('click', exitNightMode);
+
+      // Start the scoreboard loop immediately on load
+      if (apis && apis.length > 0) {
+        startLoop();
+      }
+      // Also start night mode loop on load
+      setInterval(checkAndSetNightMode, sleepIntervalMs);
+    });
+    
+  function togglePlayPause() {
+    if (paused) {
+      resumeLoop();
+    } else {
+      pauseLoop();
+    }
+  }
+
+  function updatePlayPauseButton() {
+    const text = paused ? "1>" : "11";
+    document.getElementById("play-pause").textContent = text;
+    //TODO: hook up updatePlayPauseButton() elsewhere ???
+  }
+
+  function isNightTime() {
+    const hour = new Date().getHours();
+    // Night is from 22 (10pm) to 23, and 0 to 8 (midnight to 8:59am)
+    return (hour >= 22 || hour < 9);
+  }
+
+  function enterNightMode() {
+    document.getElementById('night-overlay').style.display = 'flex';
+    document.getElementById('app-content').style.opacity = 0;
+    document.getElementById('sleep-btn').style.display = 'none';
+    //also stop api loop
+    pauseLoop();
+  }
+
+  function exitNightMode() {
+    document.getElementById('night-overlay').style.display = 'none';
+    document.getElementById('app-content').style.opacity = 1;
+    document.getElementById('sleep-btn').style.display = 'inline-block';
+    //also start api loop
+    resumeLoop();
+  }
+
+  function checkAndSetNightMode() {
+    if (isNightTime()) {
+      enterNightMode();
+      return true;
+    } else {
+      exitNightMode();
+      return false;
+    }
+  }
+
+  document.getElementById('day-toggle').addEventListener('change', function(e) {
+    if (!document.getElementById('scoreboard-footer').classList.contains('hidden')) {
+      // if footer visible, stop the event from bubbling, and toggle
+      e.stopPropagation();
+      onlyRecentResults = document.getElementById('day-toggle').checked;
+      // reload data?
+      console.log('reload data: ', onlyRecentResults);
+      startLoop();
+    }
+  });
+  </script>
+</body>
+</html>
