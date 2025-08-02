@@ -44,9 +44,9 @@ MLB
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <footer1 charset="UTF-8">
+  <meta charset="UTF-8">
   <title>Sports Scoreboard</title>
-  <footer1 name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.cdnfonts.com/css/60s-scoreboard" rel="stylesheet">
   <style>
     html, body {
@@ -97,7 +97,7 @@ MLB
       color: #FFB500;
       text-shadow: 0 0 14px #FF9500, 0 0 2px #FF5C00;
       font-weight: 900;
-      font-stretch: expanded;
+      /* font-stretch: expanded; */ /* Removed for Safari 12.1.2 compatibility */
     }
     .score div {
       line-height: 1;
@@ -217,8 +217,8 @@ MLB
     .day-toggle input[type="checkbox"] {
       width: 18px;
       height: 18px;
-      appearance: none;
-      -webkit-appearance: none;
+    /* appearance: none; */ /* Removed for Safari 12.1.2 compatibility */
+    /* -webkit-appearance: none; */ /* Removed for Safari 12.1.2 compatibility */
       background-color: transparent;
       border: 2px solid orange;
       border-radius: 4px;
@@ -329,38 +329,35 @@ MLB
 
     // Helper: sort results so favorites for this league come first, and check onlyRecentResults
     function sortFavoritesAndCheckRecent(events, league) {
-      // Find all favorite teamNames for this league
-      const favNames = favorites
-        .filter(f => f.league === league)
-        .map(f => f.teamName.toLowerCase());
-      // If no favorites for this league, return original order (filtered by date if needed)
+      var favNames = favorites
+        .filter(function(f) { return f.league === league; })
+        .map(function(f) { return f.teamName.toLowerCase(); });
       if (favNames.length === 0) {
         return onlyRecentResults
-          ? events.filter(event => isWithinDay(event.date))
-          : events.slice(); // or events.slice() if you need a copy
+          ? events.filter(function(event) { return isWithinDay(event.date); })
+          : events.slice();
       }
-      // Filter events by date if needed
-      const filteredEvents = onlyRecentResults
-        ? events.filter(event => isWithinDay(event.date))
+      var filteredEvents = onlyRecentResults
+        ? events.filter(function(event) { return isWithinDay(event.date); })
         : events;
-      // Partition
-      const favEvents = filteredEvents.filter(event => 
-        favNames.some(favName => (event.name || "").toLowerCase().includes(favName))
-      );
-      const otherEvents = filteredEvents.filter(event => 
-        !favEvents.includes(event)
-      );
+      var favEvents = filteredEvents.filter(function(event) {
+        return favNames.some(function(favName) {
+          return ((event.name || "").toLowerCase().indexOf(favName) !== -1);
+        });
+      });
+      var otherEvents = filteredEvents.filter(function(event) {
+        return favEvents.indexOf(event) === -1;
+      });
       return favEvents.concat(otherEvents);
     }
 
-
     // Helper: split array into chunks of size 3
-    function chunkArray(arr, size = 3) {
-      const chunks = [];
-      for (let i = 0; i < arr.length; i += size) {
+    function chunkArray(arr, size) {
+      size = size || 3;
+      var chunks = [];
+      for (var i = 0; i < arr.length; i += size) {
         chunks.push(arr.slice(i, i + size));
       }
-      // If arr is empty, return one empty chunk so we still call showResults([])
       return chunks.length > 0 ? chunks : [[]];
     }
 
@@ -560,79 +557,82 @@ MLB
       }
     }
 
+    // Safari 12.1.2 compatible showResults
     async function showResults(data) {
-      console.log('showResults', data);
-      let formatDateAndTime = new Intl.DateTimeFormat('en-US', {
+      var formatDateAndTime = new Intl.DateTimeFormat('en-US', {
         timeZone: 'America/Los_Angeles', month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true
       });
-      let formatDateOnly = new Intl.DateTimeFormat('en-US', {
+      var formatDateOnly = new Intl.DateTimeFormat('en-US', {
         timeZone: 'America/Los_Angeles', month: '2-digit', day: '2-digit', year: 'numeric'
       });
-      let formatTimeOnly = new Intl.DateTimeFormat('en-US', {
+      var formatTimeOnly = new Intl.DateTimeFormat('en-US', {
         timeZone: 'America/Los_Angeles', hour: '2-digit', minute: '2-digit', hour12: true
       });
 
-      const headerText = apis[currentApiIndex].league
-      const scoreboardText = data
-        .map(f => {
+      var headerText = apis[currentApiIndex].league;
+      var scoreboardText = data
+        .map(function(f) {
           var eventName = f.shortName;
-          const eventDate = new Date(f.date);
-          const eventDateInfo = isToday(eventDate) ? formatTimeOnly.format(eventDate) : formatDateAndTime.format(eventDate);
-          const state = f.status?.type?.state || f.fullStatus?.type?.state || f.status;
-          const pre = state == "pre";
-          const inProgress = state == "in";
-          const completed = f.status?.type?.completed ?? (f.fullStatus?.type?.completed ?? false);
+          var eventDate = new Date(f.date);
+          var eventDateInfo = isToday(eventDate) ? formatTimeOnly.format(eventDate) : formatDateAndTime.format(eventDate);
+
+          // Replace optional chaining and nullish coalescing
+          var state = (f.status && f.status.type && f.status.type.state) ||
+                      (f.fullStatus && f.fullStatus.type && f.fullStatus.type.state) ||
+                      f.status;
+          var pre = state == "pre";
+          var inProgress = state == "in";
+          var completed = (f.status && f.status.type && typeof f.status.type.completed !== "undefined" ? f.status.type.completed :
+                          (f.fullStatus && f.fullStatus.type && typeof f.fullStatus.type.completed !== "undefined" ? f.fullStatus.type.completed : false));
 
           var venue = '';
           var broadcasts = '';
-          var status = inProgress ? `${f.status?.type?.shortDetail || f.summary}` : `${f.status?.type?.description || f.summary}${isToday(eventDate) ? '' : ' ' + formatDateOnly.format(eventDate)}`;
-//console.log(f.status);
-          if (f.competitions?.length ?? 0 > 0) {
-            const competition = f.competitions[0];
-            venue = competition?.venue?.fullName ?? '';
-            broadcasts = competition?.broadcasts.map(b => b.names.join(', ')).join(', ') ?? '';
+          var status = inProgress
+            ? ((f.status && f.status.type && f.status.type.shortDetail) || f.summary)
+            : ((f.status && f.status.type && f.status.type.description) || f.summary) + (isToday(eventDate) ? '' : ' ' + formatDateOnly.format(eventDate));
 
-            // Update eventName with completed score
-            if ((inProgress || completed) && competition.competitors?.length > 0) {
-              eventName = competition.competitors.map(c => `${c.team.abbreviation} <b>${c.score}</b>`).join(' ');
-              // c.homeAway c.winner
+          if (f.competitions && f.competitions.length > 0) {
+            var competition = f.competitions[0];
+            venue = (competition && competition.venue && competition.venue.fullName) || '';
+            broadcasts = (competition && competition.broadcasts && competition.broadcasts.map(function(b) { return b.names.join(', '); }).join(', ')) || '';
+
+            if ((inProgress || completed) && competition.competitors && competition.competitors.length > 0) {
+              eventName = competition.competitors.map(function(c) {
+                return c.team.abbreviation + ' <b>' + c.score + '</b>';
+              }).join(' ');
             }
           } else {
-            // (probably top events)
-            venue = f.note ?? truncateWithEllipsis(f.location, 35);            
-            broadcasts = f.broadcast;
-            // Update with completed score
-            if ((inProgress || completed) && f.competitors?.length > 0) {
+            console.log(f.location, f)
+            venue = f.note || (f.location ? truncateWithEllipsis(f.location, 35) : (f.group ? f.group.shortName : ''));
+            broadcasts = f.broadcast ?? '';
+            if ((inProgress || completed) && f.competitors && f.competitors.length > 0) {
               var score = f.competitors
                 .slice(0, 3)
-                .map(c =>
-                    c.score !== undefined && c.score !== null
-                        ? `${c.abbreviation} <b>${c.score}</b>`
-                        : `${c.abbreviation}`
-                )
+                .map(function(c) {
+                  return (typeof c.score !== "undefined" && c.score !== null)
+                    ? c.abbreviation + ' <b>' + c.score + '</b>'
+                    : c.abbreviation;
+                })
                 .join(' ');
-              if ((f.competitors?.length ?? 0) == 2) {
+              if (f.competitors.length == 2) {
                 eventName = score;
               } else {
-                broadcasts = score + "</span> \n<span>" + broadcasts; // hacky !!!
+                broadcasts = score + "</span> \n<span>" + broadcasts;
               }
             }
           }
-
-          // TODO: if favorites then bold it too - favorites.filter(f => f.league === league).map(f => f.teamName.toLowerCase());
-          
-          return `<div>${eventName} \n<span>${pre ? eventDateInfo : status} - ${venue}</span> \n<span>${broadcasts}</span></div>`;
+          return '<div>' + eventName + ' \n<span>' + (pre ? eventDateInfo : status) + ' - ' + venue + '</span> \n<span>' + broadcasts + '</span></div>';
         })
         .join("\n");
 
       document.getElementById("header").textContent = headerText;
       document.getElementById("scoreboard").innerHTML = scoreboardText;
-      document.getElementById("footer1").textContent = scoreboardText?.length == 0 ? "No events today." : "";
+      document.getElementById("footer1").textContent = scoreboardText.length == 0 ? "No events today." : "";
       document.getElementById("footer2").textContent = "";
     }
     
     function truncateWithEllipsis(str, max) {
-      return str.length > max ? str.slice(0, max) + '' : str;
+      return str != null && str.length > max ? str.slice(0, max) + '' : str;
     }
 
     function wait(ms) {
@@ -647,32 +647,32 @@ MLB
         date.getFullYear() === today.getFullYear()
       );
     }
- 
-    function isWithinDay(dateStr, days = 1) {
+  
+    // Safari 12.1.2 compatible isWithinDay
+    function isWithinDay(dateStr, days) {
+      days = days || 1;
       if (!dateStr) return false;
-      const eventDate = new Date(dateStr);
-      if (isNaN(eventDate.getTime())) return false; // invalid date
-      const today = new Date();
-      today.setHours(0, 0, 0, 0); // set to midnight for accurate day comparison
-      const eventDay = new Date(eventDate);
+      var eventDate = new Date(dateStr);
+      if (isNaN(eventDate.getTime())) return false;
+      var today = new Date();
+      today.setHours(0, 0, 0, 0);
+      var eventDay = new Date(eventDate);
       eventDay.setHours(0, 0, 0, 0);
-      const diffInDays = Math.abs((eventDay - today) / (1000 * 60 * 60 * 24));
+      var diffInDays = Math.abs((eventDay - today) / (1000 * 60 * 60 * 24));
       return diffInDays <= days;
     }
 
+    // Safari 12.1.2 compatible fetchData
     async function fetchData(url) {
       try {
-        const res = await fetch(url);
-        const data = await res.json();
+        var res = await fetch(url);
+        var data = await res.json();
         //gameInfo = (isNextGame ? data.events?.[0] : data.results?.[0]) || null;
-        const events = data?.events;
-        console.log('fetchData', url, data);
-        return data?.events || data?.sports;
-      } catch {
-        console.log(`Unable to load data for ${url}`);
+        return (data && data.events) || (data && data.sports);
+      } catch (e) {
+        console.log("Unable to load data for " + url);
       }
     }
-
 
     // Hook up buttons after DOM loads
     window.addEventListener('DOMContentLoaded', () => {
@@ -746,7 +746,7 @@ MLB
 
   function enterNightMode() {
     document.getElementById('night-overlay').style.display = 'flex';
-    document.getElementById('app-content').style.opacity = 0;
+    document.getElementById('scoreboard-container').style.opacity = 0;
     document.getElementById('sleep-btn').style.display = 'none';
     //also stop api loop
     pauseLoop();
@@ -754,7 +754,7 @@ MLB
 
   function exitNightMode() {
     document.getElementById('night-overlay').style.display = 'none';
-    document.getElementById('app-content').style.opacity = 1;
+    document.getElementById('scoreboard-container').style.opacity = 1;
     document.getElementById('sleep-btn').style.display = 'inline-block';
     //also start api loop
     resumeLoop();
