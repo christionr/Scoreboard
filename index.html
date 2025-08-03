@@ -2,11 +2,11 @@
 SWITCH TO ESPN:
 https://gist.github.com/bhaidar/b2fdd34004250932a4a354a2cc15ddd4
 MLB: https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard
-NFL: http://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard
-NBA: http://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard
-EPL: http://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard
-College football: http://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard
-College baseketball: http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard
+NFL: https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard
+NBA: https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard
+EPL: https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard
+College football: https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard
+College baseketball: https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard
 Tennis	https://site.api.espn.com/apis/site/v2/sports/tennis/atp/scoreboard?dates=20250616
 Golf	https://site.api.espn.com/apis/site/v2/sports/golf/pga/scoreboard?dates=20250616
 MLS	https://site.api.espn.com/apis/site/v2/sports/soccer/usa.1/scoreboard?dates=20250616
@@ -284,11 +284,11 @@ MLB
     const apis = [
       { url: "https://site.web.api.espn.com/apis/personalized/v2/scoreboard/header?region=us&lang=en&postalCode=93401", name: "Top Events" },
       { url: "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard", league: "MLB" },
-      { url: "http://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard", league: "English Premier League" },
-      { url: "http://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard", league: "NFL" },
-      { url: "http://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard", league: "NBA" },
-      { url: "http://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard", league: "NCAA Football" },
-      { url: "http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard", league: "NCAA Basketball" },
+      { url: "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard", league: "English Premier League" },
+      { url: "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard", league: "NFL" },
+      { url: "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard", league: "NBA" },
+      { url: "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard", league: "NCAA Football" },
+      { url: "https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard", league: "NCAA Basketball" },
       { url: "https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/scoreboard", league: "NCAA Baseball" },
     ];
 
@@ -369,7 +369,6 @@ MLB
       if (api.league == null) {
         // remove my preferred leagues from top events
         const existingLeagues = apis.filter(o => o.league != null).map(obj => obj.league.toLowerCase());
-        console.log(existingLeagues, rawData);
         const filteredLeaguesWithEvents =
           rawData
           /*
@@ -387,11 +386,11 @@ MLB
                 .filter(league => !existingLeagues.includes(league.abbreviation.toLowerCase()))
                 .flatMap(league => league.events)
            );
-        console.log('filteredLeaguesWithEvents: ', filteredLeaguesWithEvents);
+        //console.log('filteredLeaguesWithEvents: ', filteredLeaguesWithEvents);
         return chunkArray(filteredLeaguesWithEvents, 3);
       } else {
         const sorted = sortFavoritesAndCheckRecent(rawData, api.league);
-        console.log('sorted: ', sorted);
+        //console.log('sorted: ', sorted);
         return chunkArray(sorted, 3);
       }
     }
@@ -458,7 +457,7 @@ MLB
           );
           if (totalEvents == 0) {
             // pausing during infinite loop
-            console.log('advance waiting - totalEvents:', totalEvents);
+            //console.log('advance waiting - totalEvents:', totalEvents);
             await wait(60000 * 60);
           }
         }
@@ -507,7 +506,7 @@ MLB
           );
           if (totalEvents == 0) {
             // pausing during infinite loop
-            console.log('advance waiting - totalEvents:', totalEvents);
+            //console.log('advance waiting - totalEvents:', totalEvents);
             await wait(60000 * 60);
           }
         }
@@ -549,7 +548,7 @@ MLB
           );
           if (totalEvents == 0) {
             // pausing during infinite loop
-            console.log('advance waiting - totalEvents:', totalEvents);
+            //console.log('advance waiting - totalEvents:', totalEvents);
             await wait(60000 * 60);
           }
         }
@@ -602,7 +601,6 @@ MLB
               }).join(' ');
             }
           } else {
-            console.log(f.location, f)
             venue = f.note || (f.location ? truncateWithEllipsis(f.location, 35) : (f.group ? f.group.shortName : ''));
             broadcasts = f.broadcast || '';
             if ((inProgress || completed) && f.competitors && f.competitors.length > 0) {
@@ -776,7 +774,7 @@ MLB
       e.stopPropagation();
       onlyRecentResults = document.getElementById('day-toggle').checked;
       // reload data?
-      console.log('reload data: ', onlyRecentResults);
+      //console.log('reload data: ', onlyRecentResults);
       startLoop();
     }
   });
