@@ -604,7 +604,7 @@ MLB
           } else {
             console.log(f.location, f)
             venue = f.note || (f.location ? truncateWithEllipsis(f.location, 35) : (f.group ? f.group.shortName : ''));
-            broadcasts = f.broadcast ?? '';
+            broadcasts = f.broadcast || '';
             if ((inProgress || completed) && f.competitors && f.competitors.length > 0) {
               var score = f.competitors
                 .slice(0, 3)
