@@ -623,11 +623,11 @@ MLB
               if (f.competitors.length == 2) {
                 eventName = score;
               } else {
-                broadcasts = score + '</span> \n<span class="details">' + broadcasts;
+                broadcasts = score + '</span><span class="details">' + broadcasts;
               }
             }
           }
-          return '<div><span class="eventName">' + eventName + '</span> \n<span class="details">' + (pre ? eventDateInfo : status) + ' - ' + venue + '</span> \n<span class="details">' + broadcasts + '</span></div>';
+          return '<div><span class="eventName">' + eventName + '</span><span class="details">' + (pre ? eventDateInfo : status) + ' - ' + venue + '</span><span class="details">' + broadcasts + '</span></div>';
         })
         .join("\n");
 
