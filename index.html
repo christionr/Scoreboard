@@ -575,7 +575,7 @@ MLB
         timeZone: 'America/Los_Angeles', hour: '2-digit', minute: '2-digit', hour12: true
       });
 
-      var headerText = apis[currentApiIndex].league ?? apis[currentApiIndex].name;
+      var headerText = apis[currentApiIndex].league != null ? apis[currentApiIndex].league : apis[currentApiIndex].name;
       var scoreboardText = data
         .map(function(f) {
           var eventName = f.shortName;
