@@ -296,13 +296,16 @@ MLB
       { url: "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard", league: "English Premier League" },
       { url: "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard", league: "NFL" },
       { url: "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard", league: "NBA" },
-      { url: "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard", league: "NCAA Football" },
-      { url: "https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard", league: "NCAA Basketball" },
-      { url: "https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/scoreboard", league: "NCAA Baseball" },
+      { url: "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard", league: "NCAA Football" }
     ];
+    /*
+    re-enable these later (figure out how to best limit)
+          { url: "https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard", league: "NCAA Basketball" },
+          { url: "https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/scoreboard", league: "NCAA Baseball" },
+    */
 
     // Configuration: interval in seconds between groups
-    const intervalSeconds = 10; // change X here
+    const intervalSeconds = 13; // change X here
     const intervalMs = intervalSeconds * 1000;
     const sleepIntervalMs = 60 * 1000;
 
@@ -313,7 +316,7 @@ MLB
     let currentChunks = []; // Array of arrays of items (groups of up to 3)
     let paused = false;
     let timeoutId = null;
-    let onlyRecentResults = false;
+    let onlyRecentResults = true;
 
     // Helper: fetch with 1-hour cache
     async function fetchAndCache(api) {
@@ -747,8 +750,8 @@ MLB
 
   function isNightTime() {
     const hour = new Date().getHours();
-    // Night is from 22 (10pm) to 23, and 0 to 8 (midnight to 8:59am)
-    return (hour >= 22 || hour < 9);
+    // Night is from 21 (9pm) to 9am
+    return (hour >= 21 || hour < 10);
   }
 
   function enterNightMode() {
