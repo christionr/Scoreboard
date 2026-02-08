@@ -386,7 +386,8 @@ MLB
           /*
             .flatMap(sport =>
               sport.leagues
-                .filter(league => !existingLeagues.includes(league.abbreviation.toLowerCase()))
+                .filter(league => !league.abbreviation 
+                  || !existingLeagues.includes(league.abbreviation.toLowerCase()))
                 .map(league => ({
                   leagues: [{ id: league.id, name: league.name, abbreviation: league.abbreviation }],
                   events: league.events
