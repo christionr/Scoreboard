@@ -396,7 +396,7 @@ MLB
             */
            .flatMap(sport =>
               sport.leagues
-                .filter(league => !existingLeagues.includes(league.abbreviation.toLowerCase()))
+                .filter(league => !league.abbreviation || !existingLeagues.includes(league.abbreviation.toLowerCase()))
                 .flatMap(league => league.events)
            );
         //console.log('filteredLeaguesWithEvents: ', filteredLeaguesWithEvents);
